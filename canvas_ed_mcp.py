@@ -15,6 +15,7 @@ import re
 from datetime import datetime
 from enum import Enum
 from typing import Optional, List, Dict, Any
+from urllib.parse import urlparse
 
 import httpx
 from mcp.server.fastmcp import FastMCP
@@ -25,8 +26,23 @@ from pydantic import BaseModel, Field, ConfigDict, field_validator
 # ============================================================================
 
 # Canvas API Configuration
-CANVAS_BASE_URL = "https://canvas.sydney.edu.au/api/v1"
+# Any Canvas school works by setting the CANVAS_BASE_URL env var
+# (e.g. "https://canvas.myuni.edu/api/v1"); default is University of Sydney.
+CANVAS_BASE_URL = os.getenv("CANVAS_BASE_URL", "https://canvas.sydney.edu.au/api/v1")
 CANVAS_API_TOKEN = os.getenv("CANVAS_API_TOKEN", "")
+
+_canvas_host = urlparse(CANVAS_BASE_URL).hostname
+if not _canvas_host:
+    raise ValueError(
+        f"CANVAS_BASE_URL must be a full URL like https://canvas.sydney.edu.au/api/v1, got {CANVAS_BASE_URL!r}"
+    )
+# Unit Outline fetching itself is USYD-specific (tab discovery + HTML parsing), but its
+# SSRF allowlist follows the configured instance instead of staying hardcoded to Sydney.
+# USYD outlines live on www.sydney.edu.au, so the default allows sydney.edu.au and its
+# subdomains; a custom instance allows only its own Canvas host and subdomains. No
+# parent-domain guessing: stripping a label can land on a public suffix (edu.au) or a
+# shared SaaS apex (instructure.com), silently widening the allowlist.
+UNIT_OUTLINE_DOMAIN = "sydney.edu.au" if _canvas_host == "canvas.sydney.edu.au" else _canvas_host
 
 # Ed Discussion API Configuration
 # University of Sydney uses Australia region
@@ -411,12 +427,11 @@ class FetchUnitOutlineInput(BaseModel):
 
     @field_validator('unit_outline_url')
     @classmethod
-    def validate_sydney_domain(cls, v: str) -> str:
-        """Restrict URLs to sydney.edu.au to prevent SSRF"""
-        from urllib.parse import urlparse
-        parsed = urlparse(v)
-        if not parsed.hostname or not parsed.hostname.endswith('sydney.edu.au'):
-            raise ValueError("URL must be a sydney.edu.au domain")
+    def validate_outline_domain(cls, v: str) -> str:
+        """Restrict URLs to the configured school's domain to prevent SSRF"""
+        host = urlparse(v).hostname
+        if not host or not (host == UNIT_OUTLINE_DOMAIN or host.endswith('.' + UNIT_OUTLINE_DOMAIN)):
+            raise ValueError(f"URL must be a {UNIT_OUTLINE_DOMAIN} domain")
         return v
 
 

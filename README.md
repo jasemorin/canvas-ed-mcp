@@ -81,6 +81,13 @@ Add the following configuration:
 }
 ```
 
+> **Not at the University of Sydney?** Add `"CANVAS_BASE_URL": "https://canvas.yourschool.edu/api/v1"`
+> to the `env` block above and all Canvas tools will target your school's instance
+> (the Unit Outline URL allowlist follows it automatically). Without it, the server
+> defaults to `https://canvas.sydney.edu.au/api/v1`. The Unit Outline tools
+> (`canvas_get_unit_outline_url`, `fetch_unit_outline`, `verify_assessment_coverage`)
+> parse USYD's outline pages and only work at the University of Sydney.
+
 > Gradescope has no official API — tools use the maintained
 > [gradescopeapi](https://pypi.org/project/gradescopeapi/) scraping library.
 > University SSO accounts must first set a native Gradescope password via
