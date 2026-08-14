@@ -44,6 +44,12 @@ if not _canvas_host:
 # shared SaaS apex (instructure.com), silently widening the allowlist.
 UNIT_OUTLINE_DOMAIN = "sydney.edu.au" if _canvas_host == "canvas.sydney.edu.au" else _canvas_host
 
+
+def outline_url_allowed(url: str) -> bool:
+    """SSRF allowlist: outline URLs must belong to UNIT_OUTLINE_DOMAIN."""
+    host = urlparse(url).hostname
+    return bool(host) and (host == UNIT_OUTLINE_DOMAIN or host.endswith('.' + UNIT_OUTLINE_DOMAIN))
+
 # Ed Discussion API Configuration
 # University of Sydney uses Australia region
 ED_BASE_URL = "https://edstem.org/api"
@@ -429,8 +435,7 @@ class FetchUnitOutlineInput(BaseModel):
     @classmethod
     def validate_outline_domain(cls, v: str) -> str:
         """Restrict URLs to the configured school's domain to prevent SSRF"""
-        host = urlparse(v).hostname
-        if not host or not (host == UNIT_OUTLINE_DOMAIN or host.endswith('.' + UNIT_OUTLINE_DOMAIN)):
+        if not outline_url_allowed(v):
             raise ValueError(f"URL must be a {UNIT_OUTLINE_DOMAIN} domain")
         return v
 
@@ -5013,7 +5018,13 @@ async def verify_assessment_coverage(params: VerifyAssessmentCoverageInput) -> s
             if isinstance(tool, dict) and "error" not in tool:
                 unit_outline_url = tool.get('custom_fields', {}).get('url', '')
 
-                if unit_outline_url:
+                if not unit_outline_url:
+                    outline_status = "no_url"
+                elif not outline_url_allowed(unit_outline_url):
+                    # Same SSRF allowlist as fetch_unit_outline; this URL comes from
+                    # Canvas external-tool config, not from the caller, but guard anyway.
+                    outline_status = "blocked_url"
+                else:
                     # Fetch and parse Unit Outline HTML
                     client = get_general_client()
                     try:
@@ -5024,8 +5035,6 @@ async def verify_assessment_coverage(params: VerifyAssessmentCoverageInput) -> s
                         outline_status = "ok"
                     except Exception:
                         outline_status = "fetch_error"
-                else:
-                    outline_status = "no_url"
             else:
                 outline_status = "tool_error"
         else:
@@ -5063,6 +5072,7 @@ async def verify_assessment_coverage(params: VerifyAssessmentCoverageInput) -> s
             "no_url": "Unit Outline URL not found in external tool configuration.",
             "tool_error": "Failed to fetch external tool details.",
             "bad_tab_id": "Could not extract tool ID from tab.",
+            "blocked_url": f"Unit Outline URL is outside the allowed {UNIT_OUTLINE_DOMAIN} domain.",
         }
         lines.append(f"**Unit Outline**: {status_messages.get(outline_status, 'Unknown error')}")
         lines.append(f"**Canvas Assignments**: {canvas_count}\n")
