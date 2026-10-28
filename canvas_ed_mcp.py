@@ -8,6 +8,7 @@ MCP server supporting both Canvas REST API and Ed Discussion API.
 
 import asyncio
 import dataclasses
+import html
 import json
 import mimetypes
 import os
@@ -1596,6 +1597,34 @@ def parse_ed_document(content: str) -> str:
     return text.strip()
 
 
+def _ed_xml_attr(tag: str, attr: str) -> str:
+    """Read one attribute value from a single Ed XML tag"""
+    m = re.search(rf'\b{attr}="([^"]*)"', tag)
+    return html.unescape(m.group(1)) if m else ""
+
+
+def extract_ed_attachments(content: str) -> List[str]:
+    """
+    Extract file and image attachments from Ed XML content as Markdown links.
+
+    The plain-text `document` field drops these, so they must be read from
+    the raw `content` XML (<file url=... filename=.../>, <image src=.../>).
+    """
+    if not content:
+        return []
+    links = []
+    for tag in re.findall(r'<file\b[^>]*>', content):
+        url = _ed_xml_attr(tag, "url")
+        if url:
+            name = _ed_xml_attr(tag, "filename") or url.rsplit('/', 1)[-1]
+            links.append(f"[{name}]({url})")
+    for tag in re.findall(r'<image\b[^>]*>', content):
+        src = _ed_xml_attr(tag, "src")
+        if src:
+            links.append(f"[image]({src})")
+    return links
+
+
 def escape_ed_xml(text: str) -> str:
     """Escape text for Ed XML content (Ed itself does not escape single quotes)"""
     return (
@@ -2465,12 +2494,12 @@ def format_ed_threads_markdown(threads: List[Dict], course_name: str = "") -> st
         created_at = format_datetime(thread.get('created_at'))
         
         # Thread type and status
-        is_question = thread.get('is_question', False)
+        is_question = thread.get('type') == 'question'
         is_answered = thread.get('is_answered', False)
         vote_count = thread.get('vote_count', 0)
-        reply_count = thread.get('replies_count', 0) or thread.get('num_comments', 0)
-        
-        thread_type = "Question" if is_question else "Post"
+        reply_count = thread.get('reply_count', 0)
+
+        thread_type = (thread.get('type') or 'post').capitalize()
         status = ""
         if is_question:
             status = " ✅ Answered" if is_answered else " ❓ Unanswered"
@@ -2485,66 +2514,92 @@ def format_ed_threads_markdown(threads: List[Dict], course_name: str = "") -> st
     return "\n".join(lines)
 
 
-def format_ed_thread_detail_markdown(thread: Dict) -> str:
+def _ed_author(item: Dict, users_by_id: Dict[int, Dict]) -> str:
+    """Resolve an Ed thread/comment author from the response's users list"""
+    if item.get('is_anonymous'):
+        return 'Anonymous'
+    user = item.get('user') or users_by_id.get(item.get('user_id'), {})
+    name = user.get('name', 'Anonymous') if user else 'Anonymous'
+    role = user.get('course_role') if user else None
+    return f"{name} ({role})" if role and role != 'student' else name
+
+
+def _format_ed_body(item: Dict) -> List[str]:
+    """Plain-text body of an Ed thread/comment plus its attachment links"""
+    body = item.get('document') or parse_ed_document(item.get('content', ''))
+    lines = [body if body else "*No content*"]
+    attachments = extract_ed_attachments(item.get('content', ''))
+    if attachments:
+        lines.append("\n**Attachments**: " + " · ".join(attachments))
+    return lines
+
+
+def _format_ed_replies(
+    replies: List[Dict],
+    users_by_id: Dict[int, Dict],
+    accepted_id: Optional[int],
+    prefix: str = "",
+    depth: int = 3
+) -> List[str]:
+    """Format Ed answers/comments, recursing into nested replies"""
+    lines = []
+    heading = "#" * min(depth, 6)
+    for j, reply in enumerate(replies, 1):
+        label = f"{prefix}{j}"
+        accepted = " ✅ Accepted Answer" if accepted_id and reply.get('id') == accepted_id else ""
+        endorsed = " 👍 Endorsed" if reply.get('is_endorsed') else ""
+        lines.append(f"{heading} {label}. {_ed_author(reply, users_by_id)}{accepted}{endorsed}")
+        lines.append(f"*{format_datetime(reply.get('created_at'))}* · Comment ID: {reply.get('id', '')}\n")
+        lines.extend(_format_ed_body(reply))
+        lines.append("")
+        lines.extend(_format_ed_replies(
+            reply.get('comments') or [], users_by_id, accepted_id, f"{label}.", depth + 1
+        ))
+    return lines
+
+
+def format_ed_thread_detail_markdown(thread: Dict, users: Optional[List[Dict]] = None) -> str:
     """Format single Ed Discussion thread details as Markdown"""
+    users_by_id = {u.get('id'): u for u in users or []}
     thread_title = thread.get('title', 'No Title')
     thread_id = thread.get('id', '')
-    user = thread.get('user', {})
-    author = user.get('name', 'Anonymous') if user else 'Anonymous'
+    author = _ed_author(thread, users_by_id)
     created_at = format_datetime(thread.get('created_at'))
-    
-    # Thread content
-    document = thread.get('document', '')
-    content = parse_ed_document(document) if document else thread.get('content', '')
-    
-    is_question = thread.get('is_question', False)
+
+    is_question = thread.get('type') == 'question'
     is_answered = thread.get('is_answered', False)
-    
+
     lines = [f"# {thread_title}\n"]
-    
-    thread_type = "Question" if is_question else "Post"
+
+    thread_type = (thread.get('type') or 'post').capitalize()
     if is_question:
         status = "Answered" if is_answered else "Unanswered"
         lines.append(f"**Type**: {thread_type} ({status})")
     else:
         lines.append(f"**Type**: {thread_type}")
-    
+
+    category = " / ".join(filter(None, [thread.get('category'), thread.get('subcategory')]))
+    if category:
+        lines.append(f"**Category**: {category}")
     lines.append(f"**Author**: {author}")
     lines.append(f"**Posted at**: {created_at}")
     lines.append(f"**Thread ID**: {thread_id}")
     lines.append("\n---\n")
-    lines.append(content if content else "*No content*")
-    
+    lines.extend(_format_ed_body(thread))
+
     # Replies/Answers
     answers = thread.get('answers', [])
     comments = thread.get('comments', [])
-    
+    accepted_id = thread.get('accepted_id')
+
     if answers:
         lines.append(f"\n## Answers ({len(answers)})\n")
-        for j, answer in enumerate(answers, 1):
-            ans_user = answer.get('user', {})
-            ans_author = ans_user.get('name', 'Anonymous') if ans_user else 'Anonymous'
-            ans_time = format_datetime(answer.get('created_at'))
-            ans_content = parse_ed_document(answer.get('document', ''))
-            is_accepted = answer.get('is_accepted', False)
-            
-            accepted_mark = " ✅ Accepted Answer" if is_accepted else ""
-            lines.append(f"### {j}. {ans_author}{accepted_mark}")
-            lines.append(f"*{ans_time}*")
-            lines.append(f"\n{ans_content}\n")
-    
+        lines.extend(_format_ed_replies(answers, users_by_id, accepted_id))
+
     if comments:
         lines.append(f"\n## Comments ({len(comments)})\n")
-        for j, comment in enumerate(comments, 1):
-            cmt_user = comment.get('user', {})
-            cmt_author = cmt_user.get('name', 'Anonymous') if cmt_user else 'Anonymous'
-            cmt_time = format_datetime(comment.get('created_at'))
-            cmt_content = parse_ed_document(comment.get('document', ''))
-            
-            lines.append(f"### {j}. {cmt_author}")
-            lines.append(f"*{cmt_time}*")
-            lines.append(f"\n{cmt_content}\n")
-    
+        lines.extend(_format_ed_replies(comments, users_by_id, accepted_id))
+
     if not answers and not comments:
         lines.append("\n*No replies yet*")
 
@@ -4182,11 +4237,12 @@ async def ed_get_thread(params: EdGetThreadInput) -> str:
         return f"Error: {result['error']}"
     
     thread = result.get('thread', result) if isinstance(result, dict) else result
-    
+    users = result.get('users', []) if isinstance(result, dict) else []
+
     if params.response_format == ResponseFormat.JSON:
         return json.dumps(thread, indent=2, ensure_ascii=False)
-    
-    return format_ed_thread_detail_markdown(thread)
+
+    return format_ed_thread_detail_markdown(thread, users)
 
 
 @mcp.tool(
@@ -4214,10 +4270,11 @@ async def ed_search_threads(params: EdSearchThreadsInput) -> str:
     """
     api_params = {
         "limit": params.limit,
-        "search": params.query
+        "query": params.query
     }
-    
-    result = await ed_api_request(f"/courses/{params.course_id}/threads", params=api_params)
+
+    # The plain /threads listing silently ignores search terms; use the search endpoint
+    result = await ed_api_request(f"/courses/{params.course_id}/threads/search", params=api_params)
     
     if isinstance(result, dict) and "error" in result:
         return f"Error: {result['error']}"
