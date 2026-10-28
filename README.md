@@ -53,6 +53,8 @@ Write content is markdown — automatically converted to Ed's XML document forma
 pip install -r requirements.txt
 ```
 
+Works with both the MCP Python SDK 1.x (`>=1.7`) and 2.x — the server imports `MCPServer` on 2.x and falls back to `FastMCP` on 1.x.
+
 ### 2. Configure Claude Desktop
 
 Edit the Claude Desktop configuration file:

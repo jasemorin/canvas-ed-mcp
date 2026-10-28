@@ -18,8 +18,14 @@ from typing import Optional, List, Dict, Any
 from urllib.parse import urlparse
 
 import httpx
-from mcp.server.fastmcp import FastMCP
+from mcp.types import ToolAnnotations
 from pydantic import BaseModel, Field, ConfigDict, field_validator
+
+# mcp 2.x renamed FastMCP to MCPServer; fall back for mcp 1.x installs.
+try:
+    from mcp.server.mcpserver import MCPServer
+except ImportError:  # mcp < 2.0
+    from mcp.server.fastmcp import FastMCP as MCPServer
 
 # ============================================================================
 # Configuration
@@ -72,7 +78,7 @@ CANVAS_EXTERNAL_TOOL_TAB_PREFIX = "context_external_tool_"
 # Initialize MCP Server
 # ============================================================================
 
-mcp = FastMCP("canvas_ed_mcp")
+mcp = MCPServer("canvas_ed_mcp")
 
 # ============================================================================
 # Enums and Models
@@ -2700,13 +2706,13 @@ def format_ed_workspaces_markdown(workspaces: List[Dict], users: List[Dict]) -> 
 
 @mcp.tool(
     name="canvas_list_courses",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Canvas Course List",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Canvas Course List",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def canvas_list_courses(params: ListCoursesInput) -> str:
     """
@@ -2739,13 +2745,13 @@ async def canvas_list_courses(params: ListCoursesInput) -> str:
 
 @mcp.tool(
     name="canvas_get_course",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Canvas Course Details",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Canvas Course Details",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def canvas_get_course(params: GetCourseInput) -> str:
     """
@@ -2784,13 +2790,13 @@ async def canvas_get_course(params: GetCourseInput) -> str:
 
 @mcp.tool(
     name="canvas_list_announcements",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Canvas Course Announcements",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Canvas Course Announcements",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def canvas_list_announcements(params: ListAnnouncementsInput) -> str:
     """
@@ -2821,13 +2827,13 @@ async def canvas_list_announcements(params: ListAnnouncementsInput) -> str:
 
 @mcp.tool(
     name="canvas_list_assignments",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Canvas Course Assignments",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Canvas Course Assignments",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def canvas_list_assignments(params: ListAssignmentsInput) -> str:
     """
@@ -2867,13 +2873,13 @@ async def canvas_list_assignments(params: ListAssignmentsInput) -> str:
 
 @mcp.tool(
     name="canvas_get_grades",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Canvas Grades",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Canvas Grades",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def canvas_get_grades(params: GetGradesInput) -> str:
     """
@@ -2940,13 +2946,13 @@ async def canvas_get_grades(params: GetGradesInput) -> str:
 
 @mcp.tool(
     name="canvas_list_files",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Canvas Course Files",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Canvas Course Files",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def canvas_list_files(params: ListFilesInput) -> str:
     """
@@ -2985,13 +2991,13 @@ async def canvas_list_files(params: ListFilesInput) -> str:
 
 @mcp.tool(
     name="canvas_get_file_content",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Canvas File Details",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Canvas File Details",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def canvas_get_file_content(params: GetFileContentInput) -> str:
     """
@@ -3037,13 +3043,13 @@ async def canvas_get_file_content(params: GetFileContentInput) -> str:
 
 @mcp.tool(
     name="canvas_list_pages",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Canvas Course Pages",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Canvas Course Pages",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def canvas_list_pages(params: ListPagesInput) -> str:
     """
@@ -3080,13 +3086,13 @@ async def canvas_list_pages(params: ListPagesInput) -> str:
 
 @mcp.tool(
     name="canvas_get_page",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Canvas Page Content",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Canvas Page Content",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def canvas_get_page(params: GetPageInput) -> str:
     """
@@ -3115,13 +3121,13 @@ async def canvas_get_page(params: GetPageInput) -> str:
 
 @mcp.tool(
     name="canvas_list_modules",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Canvas Course Modules",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Canvas Course Modules",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def canvas_list_modules(params: ListModulesInput) -> str:
     """
@@ -3164,13 +3170,13 @@ async def canvas_list_modules(params: ListModulesInput) -> str:
 
 @mcp.tool(
     name="canvas_list_module_items",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Canvas Module Items",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Canvas Module Items",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def canvas_list_module_items(params: ListModuleItemsInput) -> str:
     """
@@ -3213,13 +3219,13 @@ async def canvas_list_module_items(params: ListModuleItemsInput) -> str:
 
 @mcp.tool(
     name="canvas_get_unit_outline_url",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Canvas Unit Outline URL",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Canvas Unit Outline URL",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def canvas_get_unit_outline_url(params: GetUnitOutlineUrlInput) -> str:
     """
@@ -3289,13 +3295,13 @@ async def canvas_get_unit_outline_url(params: GetUnitOutlineUrlInput) -> str:
 
 @mcp.tool(
     name="fetch_unit_outline",
-    annotations={  # type: ignore[arg-type]
-        "title": "Fetch and Parse Unit Outline",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Fetch and Parse Unit Outline",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def fetch_unit_outline(params: FetchUnitOutlineInput) -> str:
     """
@@ -3352,13 +3358,13 @@ async def fetch_unit_outline(params: FetchUnitOutlineInput) -> str:
 
 @mcp.tool(
     name="canvas_list_calendar",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Canvas Calendar Events",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Canvas Calendar Events",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def canvas_list_calendar(params: ListCalendarInput) -> str:
     """
@@ -3398,13 +3404,13 @@ async def canvas_list_calendar(params: ListCalendarInput) -> str:
 
 @mcp.tool(
     name="canvas_get_syllabus",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Canvas Course Syllabus",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Canvas Course Syllabus",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def canvas_get_syllabus(params: GetSyllabusInput) -> str:
     """
@@ -3451,13 +3457,13 @@ async def canvas_get_syllabus(params: GetSyllabusInput) -> str:
 
 @mcp.tool(
     name="canvas_get_todo",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Canvas To-Do List",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Canvas To-Do List",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def canvas_get_todo(params: GetTodoInput) -> str:
     """
@@ -3489,13 +3495,13 @@ async def canvas_get_todo(params: GetTodoInput) -> str:
 
 @mcp.tool(
     name="canvas_get_upcoming",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Canvas Upcoming Events",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Canvas Upcoming Events",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def canvas_get_upcoming(params: GetUpcomingInput) -> str:
     """
@@ -3525,13 +3531,13 @@ async def canvas_get_upcoming(params: GetUpcomingInput) -> str:
 
 @mcp.tool(
     name="canvas_get_missing_submissions",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Canvas Missing Submissions",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Canvas Missing Submissions",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def canvas_get_missing_submissions(params: GetMissingSubmissionsInput) -> str:
     """
@@ -3568,13 +3574,13 @@ async def canvas_get_missing_submissions(params: GetMissingSubmissionsInput) -> 
 
 @mcp.tool(
     name="canvas_get_submission_status",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Canvas Submission Status",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Canvas Submission Status",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def canvas_get_submission_status(params: GetSubmissionStatusInput) -> str:
     """
@@ -3618,13 +3624,13 @@ async def canvas_get_submission_status(params: GetSubmissionStatusInput) -> str:
 
 @mcp.tool(
     name="canvas_list_discussions",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Canvas Discussion Topics",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Canvas Discussion Topics",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def canvas_list_discussions(params: ListDiscussionsInput) -> str:
     """
@@ -3658,13 +3664,13 @@ async def canvas_list_discussions(params: ListDiscussionsInput) -> str:
 
 @mcp.tool(
     name="canvas_get_discussion",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Canvas Discussion Topic",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Canvas Discussion Topic",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def canvas_get_discussion(params: GetDiscussionInput) -> str:
     """
@@ -3700,13 +3706,13 @@ async def canvas_get_discussion(params: GetDiscussionInput) -> str:
 
 @mcp.tool(
     name="canvas_get_all_grades",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get All Canvas Course Grades",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get All Canvas Course Grades",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def canvas_get_all_grades(params: GetAllGradesInput) -> str:
     """
@@ -3750,13 +3756,13 @@ async def canvas_get_all_grades(params: GetAllGradesInput) -> str:
 
 @mcp.tool(
     name="canvas_get_my_submission",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get My Canvas Submission & Feedback",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get My Canvas Submission & Feedback",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def canvas_get_my_submission(params: GetMySubmissionInput) -> str:
     """
@@ -3788,13 +3794,13 @@ async def canvas_get_my_submission(params: GetMySubmissionInput) -> str:
 
 @mcp.tool(
     name="canvas_get_peer_reviews",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get My Canvas Peer Reviews",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get My Canvas Peer Reviews",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def canvas_get_peer_reviews(params: GetPeerReviewsInput) -> str:
     """
@@ -3867,13 +3873,13 @@ async def canvas_get_peer_reviews(params: GetPeerReviewsInput) -> str:
 
 @mcp.tool(
     name="canvas_submit_assignment",
-    annotations={  # type: ignore[arg-type]
-        "title": "Submit Canvas Assignment",
-        "readOnlyHint": False,
-        "destructiveHint": False,
-        "idempotentHint": False,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Submit Canvas Assignment",
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=False,
+        openWorldHint=True,
+    ),
 )
 async def canvas_submit_assignment(params: SubmitAssignmentInput) -> str:
     """
@@ -3953,13 +3959,13 @@ async def canvas_submit_assignment(params: SubmitAssignmentInput) -> str:
 
 @mcp.tool(
     name="canvas_post_discussion_entry",
-    annotations={  # type: ignore[arg-type]
-        "title": "Post to Canvas Discussion",
-        "readOnlyHint": False,
-        "destructiveHint": False,
-        "idempotentHint": False,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Post to Canvas Discussion",
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=False,
+        openWorldHint=True,
+    ),
 )
 async def canvas_post_discussion_entry(params: PostDiscussionEntryInput) -> str:
     """
@@ -4006,13 +4012,13 @@ async def canvas_post_discussion_entry(params: PostDiscussionEntryInput) -> str:
 
 @mcp.tool(
     name="ed_get_user_info",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Ed User Information",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Ed User Information",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def ed_get_user_info(params: EdUserInfoInput) -> str:
     """
@@ -4046,13 +4052,13 @@ async def ed_get_user_info(params: EdUserInfoInput) -> str:
 
 @mcp.tool(
     name="ed_list_courses",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Ed Discussion Course List",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Ed Discussion Course List",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def ed_list_courses(params: EdListCoursesInput) -> str:
     """
@@ -4095,13 +4101,13 @@ async def ed_list_courses(params: EdListCoursesInput) -> str:
 
 @mcp.tool(
     name="ed_list_threads",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Ed Discussion Thread List",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Ed Discussion Thread List",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def ed_list_threads(params: EdListThreadsInput) -> str:
     """
@@ -4151,13 +4157,13 @@ async def ed_list_threads(params: EdListThreadsInput) -> str:
 
 @mcp.tool(
     name="ed_get_thread",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Ed Discussion Thread Details",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Ed Discussion Thread Details",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def ed_get_thread(params: EdGetThreadInput) -> str:
     """
@@ -4185,13 +4191,13 @@ async def ed_get_thread(params: EdGetThreadInput) -> str:
 
 @mcp.tool(
     name="ed_search_threads",
-    annotations={  # type: ignore[arg-type]
-        "title": "Search Ed Discussion Threads",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Search Ed Discussion Threads",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def ed_search_threads(params: EdSearchThreadsInput) -> str:
     """
@@ -4236,13 +4242,13 @@ async def ed_search_threads(params: EdSearchThreadsInput) -> str:
 
 @mcp.tool(
     name="ed_post_thread",
-    annotations={  # type: ignore[arg-type]
-        "title": "Post Ed Discussion Thread",
-        "readOnlyHint": False,
-        "destructiveHint": False,
-        "idempotentHint": False,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Post Ed Discussion Thread",
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=False,
+        openWorldHint=True,
+    ),
 )
 async def ed_post_thread(params: EdPostThreadInput) -> str:
     """
@@ -4302,13 +4308,13 @@ async def ed_post_thread(params: EdPostThreadInput) -> str:
 
 @mcp.tool(
     name="ed_edit_thread",
-    annotations={  # type: ignore[arg-type]
-        "title": "Edit Ed Discussion Thread",
-        "readOnlyHint": False,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Edit Ed Discussion Thread",
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def ed_edit_thread(params: EdEditThreadInput) -> str:
     """
@@ -4364,13 +4370,13 @@ async def ed_edit_thread(params: EdEditThreadInput) -> str:
 
 @mcp.tool(
     name="ed_post_comment",
-    annotations={  # type: ignore[arg-type]
-        "title": "Post Ed Comment or Answer",
-        "readOnlyHint": False,
-        "destructiveHint": False,
-        "idempotentHint": False,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Post Ed Comment or Answer",
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=False,
+        openWorldHint=True,
+    ),
 )
 async def ed_post_comment(params: EdPostCommentInput) -> str:
     """
@@ -4414,13 +4420,13 @@ async def ed_post_comment(params: EdPostCommentInput) -> str:
 
 @mcp.tool(
     name="ed_reply_to_comment",
-    annotations={  # type: ignore[arg-type]
-        "title": "Reply to Ed Comment",
-        "readOnlyHint": False,
-        "destructiveHint": False,
-        "idempotentHint": False,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Reply to Ed Comment",
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=False,
+        openWorldHint=True,
+    ),
 )
 async def ed_reply_to_comment(params: EdReplyToCommentInput) -> str:
     """
@@ -4461,13 +4467,13 @@ async def ed_reply_to_comment(params: EdReplyToCommentInput) -> str:
 
 @mcp.tool(
     name="ed_accept_answer",
-    annotations={  # type: ignore[arg-type]
-        "title": "Accept Ed Answer",
-        "readOnlyHint": False,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Accept Ed Answer",
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def ed_accept_answer(params: EdAcceptAnswerInput) -> str:
     """
@@ -4496,13 +4502,13 @@ async def ed_accept_answer(params: EdAcceptAnswerInput) -> str:
 
 @mcp.tool(
     name="ed_thread_action",
-    annotations={  # type: ignore[arg-type]
-        "title": "Toggle Ed Thread State",
-        "readOnlyHint": False,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Toggle Ed Thread State",
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def ed_thread_action(params: EdThreadActionInput) -> str:
     """
@@ -4533,13 +4539,13 @@ async def ed_thread_action(params: EdThreadActionInput) -> str:
 
 @mcp.tool(
     name="ed_list_lessons",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Ed Lessons List",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Ed Lessons List",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def ed_list_lessons(params: EdListLessonsInput) -> str:
     """
@@ -4570,13 +4576,13 @@ async def ed_list_lessons(params: EdListLessonsInput) -> str:
 
 @mcp.tool(
     name="ed_get_lesson",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Ed Lesson Details",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Ed Lesson Details",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def ed_get_lesson(params: EdGetLessonInput) -> str:
     """
@@ -4610,13 +4616,13 @@ async def ed_get_lesson(params: EdGetLessonInput) -> str:
 
 @mcp.tool(
     name="ed_list_resources",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Ed Resources List",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Ed Resources List",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def ed_list_resources(params: EdListResourcesInput) -> str:
     """
@@ -4646,13 +4652,13 @@ async def ed_list_resources(params: EdListResourcesInput) -> str:
 
 @mcp.tool(
     name="ed_list_workspaces",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Ed Workspaces List",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Ed Workspaces List",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def ed_list_workspaces(params: EdListWorkspacesInput) -> str:
     """
@@ -4684,13 +4690,13 @@ async def ed_list_workspaces(params: EdListWorkspacesInput) -> str:
 
 @mcp.tool(
     name="ed_create_workspace",
-    annotations={  # type: ignore[arg-type]
-        "title": "Create Ed Workspace",
-        "readOnlyHint": False,
-        "destructiveHint": False,
-        "idempotentHint": False,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Create Ed Workspace",
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=False,
+        openWorldHint=True,
+    ),
 )
 async def ed_create_workspace(params: EdCreateWorkspaceInput) -> str:
     """
@@ -4730,13 +4736,13 @@ async def ed_create_workspace(params: EdCreateWorkspaceInput) -> str:
 
 @mcp.tool(
     name="ed_update_workspace",
-    annotations={  # type: ignore[arg-type]
-        "title": "Update Ed Workspace",
-        "readOnlyHint": False,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Update Ed Workspace",
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def ed_update_workspace(params: EdUpdateWorkspaceInput) -> str:
     """
@@ -4791,13 +4797,13 @@ async def ed_update_workspace(params: EdUpdateWorkspaceInput) -> str:
 
 @mcp.tool(
     name="ed_delete_workspace",
-    annotations={  # type: ignore[arg-type]
-        "title": "Delete Ed Workspace",
-        "readOnlyHint": False,
-        "destructiveHint": True,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Delete Ed Workspace",
+        readOnlyHint=False,
+        destructiveHint=True,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def ed_delete_workspace(params: EdDeleteWorkspaceInput) -> str:
     """
@@ -4828,13 +4834,13 @@ async def ed_delete_workspace(params: EdDeleteWorkspaceInput) -> str:
 
 @mcp.tool(
     name="gradescope_list_courses",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Gradescope Courses",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Gradescope Courses",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def gradescope_list_courses(params: GradescopeListCoursesInput) -> str:
     """
@@ -4889,13 +4895,13 @@ async def gradescope_list_courses(params: GradescopeListCoursesInput) -> str:
 
 @mcp.tool(
     name="gradescope_list_assignments",
-    annotations={  # type: ignore[arg-type]
-        "title": "Get Gradescope Assignments",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Get Gradescope Assignments",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def gradescope_list_assignments(params: GradescopeListAssignmentsInput) -> str:
     """
@@ -4960,13 +4966,13 @@ async def gradescope_list_assignments(params: GradescopeListAssignmentsInput) ->
 
 @mcp.tool(
     name="verify_assessment_coverage",
-    annotations={  # type: ignore[arg-type]
-        "title": "Verify Assessment Coverage",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Verify Assessment Coverage",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def verify_assessment_coverage(params: VerifyAssessmentCoverageInput) -> str:
     """
@@ -5128,13 +5134,13 @@ MAX_DOWNLOAD_SIZE = 50 * 1024 * 1024  # 50MB
 
 @mcp.tool(
     name="canvas_download_file",
-    annotations={  # type: ignore[arg-type]
-        "title": "Download Canvas File to Local",
-        "readOnlyHint": False,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Download Canvas File to Local",
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def canvas_download_file(params: DownloadFileInput) -> str:
     """
@@ -5212,13 +5218,13 @@ async def canvas_download_file(params: DownloadFileInput) -> str:
 
 @mcp.tool(
     name="ed_download_resource",
-    annotations={  # type: ignore[arg-type]
-        "title": "Download Ed Resource to Local",
-        "readOnlyHint": False,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True
-    }
+    annotations=ToolAnnotations(
+        title="Download Ed Resource to Local",
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
 )
 async def ed_download_resource(params: EdDownloadResourceInput) -> str:
     """
